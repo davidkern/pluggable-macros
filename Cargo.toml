@@ -1,0 +1,12 @@
+[package]
+name = "pluggable-macros"
+version = "0.1.0"
+authors = ["David Kern <david@mju.io>"]
+edition = "2018"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = "0.15.34"
+quote = "0.6.12"

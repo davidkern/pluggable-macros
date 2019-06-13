@@ -5,30 +5,51 @@ extern crate proc_macro;
 use self::proc_macro::TokenStream;
 
 use quote::quote;
+use syn::{braced, parse_macro_input, Ident, Lit, ReturnType, Token, Type};
 use syn::parse::{Parse, ParseStream, Result};
-use syn::{braced, parse_macro_input, Ident, Lit, Token};
+use syn::punctuated::Punctuated;
 
 mod keyword {
     syn::custom_keyword!(interface);
 }
 
-struct Interface {
+struct InterfaceMethodArg {
     name: Ident,
+    colon_tok: Token![:],
+    ty: Type,
+}
+
+struct InterfaceMethod {
+    fn_tok: Token![fn],
+    name: Ident,
+    amp_tok: Token![&],
+    self_tok: Token![self],
+    args: Punctuated<InterfaceMethodArg, Token![,]>,
+    ret_ty: ReturnType,
+}
+
+struct Interface {
+    interface_kw: keyword::interface,
+    name: Ident,
+    colon_tok: Token![:],
     iid: Lit,
+//    methods: Punctuated<InterfaceMethod, Token![,]>,
 }
 
 impl Parse for Interface {
     fn parse(input: ParseStream) -> Result<Self> {
         let _body;
 
-        input.parse::<keyword::interface>()?;
-        let name: Ident = input.parse()?;
-        input.parse::<Token![:]>()?;
+        let interface_kw = input.parse()?;
+        let name = input.parse()?;
+        let colon_tok = input.parse()?;
         let iid: Lit = input.parse()?;
         braced!(_body in input);
 
-        Ok(Interface { 
+        Ok(Interface {
+            interface_kw,
             name,
+            colon_tok,
             iid,
         })
     }
@@ -37,7 +58,9 @@ impl Parse for Interface {
 #[proc_macro]
 pub fn pluggable(input: TokenStream) -> TokenStream {
     let Interface {
+        interface_kw,
         name,
+        colon_tok,
         iid,
     } = parse_macro_input!(input as Interface);
 
